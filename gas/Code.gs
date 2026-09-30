@@ -18,6 +18,9 @@ const INTERVAL_MINUTES = 5;   // 1, 5, 10, 15, 30 のいずれか
 const TIMEZONE = 'Asia/Tokyo';
 const API_DEFAULT_DAYS = 60;  // APIが返す期間（日）
 const JUDGE_FOLDER_NAME = 'Toタスク判定'; // Claudeの「要返信」判定を置くドライブのフォルダ
+// 共有リンク（SHARE_KEY）で見せるルーム。ここにないルームは共有リンクでは見えない
+const SHARE_ROOM_IDS = ['421916562']; // 【共通適性テスト添削】ミショナ
+const PAGE_URL = 'https://ytwg66z59b-wq.github.io/chatwork-to-tasks/';
 // ================
 
 const API_BASE = 'https://api.chatwork.com/v2';
@@ -166,15 +169,37 @@ function makeApiKey() {
   return key;
 }
 
+/**
+ * みんなに配る共有リンクを作って実行ログに表示する（1回だけ実行）。
+ * 共有リンクで見えるのは SHARE_ROOM_IDS のルームだけ。
+ * リンクを止めたいときは、スクリプトプロパティの SHARE_KEY を削除するか、もう一度実行して作り直す。
+ */
+function makeShareLink() {
+  const props = PropertiesService.getScriptProperties();
+  const key = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  props.setProperty('SHARE_KEY', key);
+  // ウェブアプリのURL：スクリプトプロパティ WEB_APP_URL があればそれを優先
+  let execUrl = props.getProperty('WEB_APP_URL') || ScriptApp.getService().getUrl() || '';
+  if (!/\/exec$/.test(execUrl)) {
+    throw new Error('ウェブアプリのURL（…/exec）が取得できませんでした。スクリプトプロパティ WEB_APP_URL に、デプロイで表示されたURLを入れてからもう一度実行してください');
+  }
+  const link = PAGE_URL + '#api=' + encodeURIComponent(execUrl) + '&key=' + key;
+  console.log('共有リンク: ' + link);
+  return link;
+}
+
 /** Web画面から呼ばれる。?key=...&days=60 */
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  const apiKey = PropertiesService.getScriptProperties().getProperty('API_KEY');
+  const props = PropertiesService.getScriptProperties();
+  const apiKey = props.getProperty('API_KEY');
+  const shareKey = props.getProperty('SHARE_KEY');
   if (!apiKey) return json_({ ok: false, error: 'API_KEY が未設定です（makeApiKey を実行してください）' });
-  if (p.key !== apiKey) return json_({ ok: false, error: 'キーが違います' });
+  const shared = !!shareKey && p.key === shareKey;
+  if (p.key !== apiKey && !shared) return json_({ ok: false, error: 'キーが違います' });
 
   const days = Math.min(Math.max(Number(p.days) || API_DEFAULT_DAYS, 1), 365);
-  const cacheKey = 'tasks_' + days;
+  const cacheKey = 'tasks_' + days + (shared ? '_shared' : '');
   const cache = CacheService.getScriptCache();
   const cached = cache.get(cacheKey);
   if (cached && p.nocache !== '1') return ContentService.createTextOutput(cached).setMimeType(ContentService.MimeType.JSON);
@@ -185,6 +210,7 @@ function doGet(e) {
     const values = last > 1 ? sheet.getRange(2, 1, last - 1, HEADERS.length).getValues() : [];
     const rows = values
       .filter(v => v[1] && v[4])
+      .filter(v => !shared || SHARE_ROOM_IDS.indexOf(String(v[5])) >= 0)
       .map(v => ({
         time: v[0] instanceof Date ? v[0].getTime() : new Date(v[0]).getTime(),
         roomName: String(v[1]),
@@ -194,7 +220,8 @@ function doGet(e) {
         roomId: String(v[5]),
         senderId: String(v[7] || '')
       }));
-    const result = buildTasks(rows, { me: getMe_(), sinceMs: Date.now() - days * 86400000 });
+    const result = buildTasks(rows, { me: shared ? { id: '', name: '' } : getMe_(), sinceMs: Date.now() - days * 86400000 });
+    if (shared) result.shared = true;
     // Claudeの「要返信」判定（Googleドライブの Toタスク判定 フォルダ）を付ける
     const judged = loadJudgments_();
     if (judged) {

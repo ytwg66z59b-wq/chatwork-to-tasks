@@ -190,9 +190,10 @@
     const meId = d.me && d.me.id;
     const v = state.view;
 
-    const people = [{ id: 'me', name: '自分' + (d.me && d.me.name ? '（' + shortName(d.me.name) + '）' : '') }, { id: 'all', name: '全員' }]
+    const people = (d.shared ? [] : [{ id: 'me', name: '自分' + (d.me && d.me.name ? '（' + shortName(d.me.name) + '）' : '') }])
+      .concat([{ id: 'all', name: d.shared ? '全員（自分の名前を選んでください）' : '全員' }])
       .concat(d.people.filter(p => p.id !== meId).map(p => ({ id: p.id, name: shortName(p.name) + 'さん' })));
-    if (!people.some(p => p.id === v.person)) v.person = 'me';
+    if (!people.some(p => p.id === v.person)) v.person = d.shared ? 'all' : 'me';
     el.personSel.replaceChildren(...people.map(p => new Option(p.name, p.id, false, p.id === v.person)));
 
     const rooms = [{ id: 'all', name: 'すべてのルーム' }].concat(d.rooms);
@@ -208,7 +209,7 @@
   function makeCard(t) {
     const node = el.tpl.content.firstElementChild.cloneNode(true);
     const done = isDone(t);
-    const meId = state.data.me && state.data.me.id;
+    const meId = state.data.shared ? state.view.person : (state.data.me && state.data.me.id);
     node.classList.toggle('is-done', done);
 
     const chip = node.querySelector('.chip--to');
@@ -333,10 +334,16 @@
       el.notice.querySelector('p').textContent = '更新に失敗しました（前回のデータを表示中）：' + state.error;
     }
 
-    el.subtitle.textContent = state.demo ? 'デモ表示中（架空のデータ）' : (d.me && d.me.name ? shortName(d.me.name) + 'さん宛てのTo' : 'Chatworkの自分宛てToを一覧で');
+    const selPerson = d.people.find(p => p.id === state.view.person);
+    el.subtitle.textContent = state.demo ? 'デモ表示中（架空のデータ）'
+      : d.shared ? (selPerson ? shortName(selPerson.name) + 'さん宛てのTo' : '共有ルームのTo')
+      : (d.me && d.me.name ? shortName(d.me.name) + 'さん宛てのTo' : 'Chatworkの自分宛てToを一覧で');
     el.updated.textContent = '更新 ' + pad(new Date(d.generatedAt).getHours()) + ':' + pad(new Date(d.generatedAt).getMinutes());
     el.summary.hidden = false; el.filters.hidden = false;
     renderSelects();
+    if (d.shared && state.view.person === 'all' && !state.error) {
+      showNotice('<p><strong>「宛先」で自分の名前を選んでください。</strong><br>次からは自分宛てのToだけが表示されます。</p>');
+    }
 
     const base = sortTasks(visibleTasks());
     const open = base.filter(t => !isDone(t));
