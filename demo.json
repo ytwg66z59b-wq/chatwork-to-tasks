@@ -1,0 +1,206 @@
+{
+ "ok": true,
+ "demo": true,
+ "me": {
+  "id": "100",
+  "name": "山田 はると"
+ },
+ "baseNow": 1790823600000,
+ "generatedAt": 1790823600000,
+ "rooms": [
+  {
+   "id": "9001",
+   "name": "【全体】サンプルプロジェクト"
+  },
+  {
+   "id": "9002",
+   "name": "【制作】LP改善チーム"
+  },
+  {
+   "id": "9003",
+   "name": "【問い合わせ】ツール不具合"
+  },
+  {
+   "id": "9004",
+   "name": "【山田】業務依頼"
+  }
+ ],
+ "people": [
+  {
+   "id": "100",
+   "name": "山田 はると"
+  },
+  {
+   "id": "201",
+   "name": "佐藤 みお（平日10-18時）"
+  },
+  {
+   "id": "202",
+   "name": "鈴木 けんた｜エンジニア"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "9004-5000-100",
+   "roomId": "9004",
+   "roomName": "【山田】業務依頼",
+   "messageId": "5000",
+   "time": 1790557200000,
+   "fromId": "204",
+   "fromName": "【総務】サンプル商事",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "お疲れ様です。\n今月の稼働報告フォームのご回答をお願いいたします。\n提出期限：10/5まで\nhttps://example.com/form",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null
+  },
+  {
+   "id": "9002-5001-100",
+   "roomId": "9002",
+   "roomName": "【制作】LP改善チーム",
+   "messageId": "5001",
+   "time": 1790719200000,
+   "fromId": "201",
+   "fromName": "佐藤 みお（平日10-18時）",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "お疲れ様です。\nLPのファーストビュー案を2パターン作成しました。\nどちらの方向性で進めるか、明日の朝までにご意見いただけますか？",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null
+  },
+  {
+   "id": "9003-5002-100",
+   "roomId": "9003",
+   "roomName": "【問い合わせ】ツール不具合",
+   "messageId": "5002",
+   "time": 1790805600000,
+   "fromId": "202",
+   "fromName": "鈴木 けんた｜エンジニア",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "お問い合わせの件、再現できました。\n拡張機能をバージョン1.2.3に更新したあと、ページを再読み込みしてもう一度お試しいただけますか？",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null
+  },
+  {
+   "id": "9001-5003-100",
+   "roomId": "9001",
+   "roomName": "【全体】サンプルプロジェクト",
+   "messageId": "5003",
+   "time": 1790821200000,
+   "fromId": "203",
+   "fromName": "高橋 あや",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "来週の定例、火曜15時からに変更になりました。\n参加可否だけリアクションください！",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null
+  },
+  {
+   "id": "9002-5004-100",
+   "roomId": "9002",
+   "roomName": "【制作】LP改善チーム",
+   "messageId": "5004",
+   "time": 1790478000000,
+   "fromId": "201",
+   "fromName": "佐藤 みお（平日10-18時）",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "バナーの文言チェックをお願いします。\n修正点があればシートにコメントで入れてください。",
+   "url": "https://www.chatwork.com/",
+   "done": true,
+   "doneAt": 1790488800000,
+   "doneBy": "re",
+   "replyUrl": "https://www.chatwork.com/"
+  },
+  {
+   "id": "9004-5005-100",
+   "roomId": "9004",
+   "roomName": "【山田】業務依頼",
+   "messageId": "5005",
+   "time": 1790305200000,
+   "fromId": "204",
+   "fromName": "【総務】サンプル商事",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "契約書の電子署名をお願いいたします。",
+   "url": "https://www.chatwork.com/",
+   "done": true,
+   "doneAt": 1790391600000,
+   "doneBy": "to",
+   "replyUrl": "https://www.chatwork.com/"
+  },
+  {
+   "id": "9002-5006-201",
+   "roomId": "9002",
+   "roomName": "【制作】LP改善チーム",
+   "messageId": "5006",
+   "time": 1790650800000,
+   "fromId": "100",
+   "fromName": "山田 はると",
+   "toId": "201",
+   "toName": "佐藤 みお（平日10-18時）",
+   "isMe": false,
+   "body": "佐藤さん、画像素材の差し替えをお願いできますか？",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null
+  },
+  {
+   "id": "9001-5007-202",
+   "roomId": "9001",
+   "roomName": "【全体】サンプルプロジェクト",
+   "messageId": "5007",
+   "time": 1790816400000,
+   "fromId": "203",
+   "fromName": "高橋 あや",
+   "toId": "202",
+   "toName": "鈴木 けんた｜エンジニア",
+   "isMe": false,
+   "body": "鈴木さん、先ほどの不具合の件、原因わかりましたか？",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null
+  },
+  {
+   "id": "9003-5008-202",
+   "roomId": "9003",
+   "roomName": "【問い合わせ】ツール不具合",
+   "messageId": "5008",
+   "time": 1790564400000,
+   "fromId": "203",
+   "fromName": "高橋 あや",
+   "toId": "202",
+   "toName": "鈴木 けんた｜エンジニア",
+   "isMe": false,
+   "body": "打刻ページが開けない件、確認お願いします。",
+   "url": "https://www.chatwork.com/",
+   "done": true,
+   "doneAt": 1790568000000,
+   "doneBy": "re",
+   "replyUrl": "https://www.chatwork.com/"
+  }
+ ]
+}

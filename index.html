@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15171b" media="(prefers-color-scheme: dark)">
+  <title>Toタスク</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23e5484d'/><text x='50' y='66' font-size='46' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>To</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">To</span>
+        <div>
+          <h1 class="brand__title">Toタスク</h1>
+          <p class="brand__sub" id="subtitle">Chatworkの自分宛てToを一覧で</p>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <span class="updated" id="updated" aria-live="polite"></span>
+        <button class="icon-btn" id="refreshBtn" type="button" title="今すぐ更新" aria-label="今すぐ更新">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
+        </button>
+        <button class="icon-btn" id="settingsBtn" type="button" title="設定" aria-label="設定">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="summary" id="summary" hidden>
+      <div class="stat stat--alert">
+        <span class="stat__num" id="statOpen">0</span>
+        <span class="stat__label">未対応</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num" id="statDone">0</span>
+        <span class="stat__label">対応済み</span>
+      </div>
+      <div class="stat stat--wide">
+        <span class="stat__label">いちばん古い未対応</span>
+        <span class="stat__text" id="statOldest">—</span>
+      </div>
+    </section>
+
+    <section class="filters" id="filters" hidden aria-label="絞り込み">
+      <div class="seg" role="radiogroup" aria-label="状態">
+        <button type="button" class="seg__btn" data-status="open" role="radio">未対応</button>
+        <button type="button" class="seg__btn" data-status="done" role="radio">対応済み</button>
+        <button type="button" class="seg__btn" data-status="all" role="radio">すべて</button>
+      </div>
+      <div class="filter-grid">
+        <label class="field">
+          <span class="field__label">宛先</span>
+          <select id="personSel"></select>
+        </label>
+        <label class="field">
+          <span class="field__label">トークルーム</span>
+          <select id="roomSel"></select>
+        </label>
+        <label class="field">
+          <span class="field__label">並び</span>
+          <select id="orderSel">
+            <option value="asc">古い順</option>
+            <option value="desc">新しい順</option>
+          </select>
+        </label>
+        <label class="field field--search">
+          <span class="field__label">キーワード</span>
+          <input id="searchInput" type="search" placeholder="本文・送信者で検索" autocomplete="off">
+        </label>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="groupToggle">
+        <span>トークルームごとにまとめる</span>
+      </label>
+    </section>
+
+    <div id="notice" class="notice" hidden></div>
+    <div id="list" class="list" aria-live="polite"></div>
+  </main>
+
+  <dialog id="settings" class="dialog">
+    <form method="dialog" id="settingsForm" class="dialog__body">
+      <h2 class="dialog__title">接続の設定</h2>
+      <p class="dialog__desc">Google Apps Script で発行した「ウェブアプリのURL」と「APIキー」を入れてください。この端末のブラウザにだけ保存されます。</p>
+      <label class="field">
+        <span class="field__label">ウェブアプリのURL</span>
+        <input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/…/exec" required>
+      </label>
+      <label class="field">
+        <span class="field__label">APIキー</span>
+        <input id="apiKeyInput" type="password" placeholder="makeApiKey で作ったキー" required autocomplete="off">
+      </label>
+      <label class="field">
+        <span class="field__label">表示する期間</span>
+        <select id="daysInput">
+          <option value="14">直近14日</option>
+          <option value="30">直近30日</option>
+          <option value="60">直近60日</option>
+          <option value="120">直近120日</option>
+        </select>
+      </label>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" id="demoBtn">デモを見る</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn--ghost" id="cancelBtn">閉じる</button>
+        <button type="submit" class="btn btn--primary" id="saveBtn" value="save">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="cardTpl">
+    <article class="card">
+      <div class="card__head">
+        <span class="chip chip--to"></span>
+        <span class="card__room"></span>
+        <time class="card__time"></time>
+      </div>
+      <p class="card__from"></p>
+      <div class="card__body"></div>
+      <button type="button" class="card__more" hidden>もっと見る</button>
+      <div class="card__foot">
+        <span class="status"></span>
+        <span class="spacer"></span>
+        <a class="btn btn--small btn--ghost card__reply" target="_blank" rel="noopener" hidden>返信を見る</a>
+        <button type="button" class="btn btn--small btn--ghost card__manual"></button>
+        <a class="btn btn--small btn--primary card__open" target="_blank" rel="noopener">Chatworkで開く</a>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
