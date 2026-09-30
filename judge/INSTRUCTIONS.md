@@ -33,7 +33,9 @@ Toタスクの画面（Apps Script経由）がこの結果を読んで「要返�
    - title：`to-judgments-YYYYMMDD-HHmm.json`（日本時間）
    - parentId：フォルダ「Toタスク判定」のID
    - contentMimeType：`application/json`、`disableConversionToGoogleType: true`、`textContent` に中身
-   でアップロード。成功したら、手順2で取得した**前回のファイルだけ** `trash_file` でゴミ箱へ。
+   でアップロード。`textContent` には `out.json` の中身を**一字一句そのまま**入れる（`cat` で表示して写す）。
+   アップロード結果の `fileSize` が `wc -c out.json` と一致することを確認し、違ったら今アップロードしたファイルをゴミ箱に入れて1回だけやり直す。
+   一致したら、手順2で取得した**前回のファイルだけ** `trash_file` でゴミ箱へ。
 7. 最後に「候補N件・要返信M件」を一行で報告する。本文の引用はしない。
 
 ## 判定の基準
