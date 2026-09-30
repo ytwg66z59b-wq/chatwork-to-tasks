@@ -28,7 +28,7 @@
     loading: false,
     error: null,
     manual: store.getJSON(LS.manual, {}),   // id -> 'done' | 'open'（手動の上書き）
-    view: Object.assign({ status: 'all', person: 'me', room: 'all', order: 'asc', q: '', group: false }, store.getJSON(LS.view, {})),
+    view: Object.assign({ status: 'reply', person: 'me', room: 'all', order: 'asc', q: '', group: false }, store.getJSON(LS.view, {})),
     expanded: new Set()
   };
 
@@ -47,6 +47,7 @@
   const el = {
     list: $('#list'), notice: $('#notice'), summary: $('#summary'), filters: $('#filters'),
     statOpen: $('#statOpen'), statDone: $('#statDone'), statOldest: $('#statOldest'),
+    statReply: $('#statReply'), statReplyBox: $('#statReplyBox'), judgedNote: $('#judgedNote'),
     personSel: $('#personSel'), roomSel: $('#roomSel'), orderSel: $('#orderSel'), search: $('#searchInput'),
     group: $('#groupToggle'), updated: $('#updated'), subtitle: $('#subtitle'),
     refresh: $('#refreshBtn'), settingsBtn: $('#settingsBtn'), dialog: $('#settings'), form: $('#settingsForm'),
@@ -80,6 +81,7 @@
         // デモの日時を「今」基準にずらす
         const shift = Date.now() - (json.baseNow || json.generatedAt);
         json.tasks.forEach(t => { t.time += shift; if (t.doneAt) t.doneAt += shift; });
+        if (json.judgedAt) json.judgedAt += shift;
         json.generatedAt = Date.now();
       } else {
         const url = new URL(cfg.apiUrl);
@@ -146,6 +148,12 @@
     if (o === 'done') return true;
     if (o === 'open') return false;
     return !!t.done;
+  }
+
+  // Claudeが「返答が必要・まだ答えていない」と判定したもの（手動で完了にしたものは除く）
+  function isReply(t) {
+    if (state.manual[t.id] === 'done') return false;
+    return !!(t.ai && t.ai.needsReply && !t.ai.answered);
   }
 
   function saveView() { store.setJSON(LS.view, state.view); }
@@ -235,6 +243,17 @@
       });
     }
 
+    const aiLine = node.querySelector('.card__ai');
+    if (t.ai) {
+      aiLine.hidden = false;
+      const badge = document.createElement('span');
+      const reply = isReply(t);
+      badge.className = 'ai-badge' + (reply ? ' ai-badge--reply' : t.ai.answered ? ' ai-badge--answered' : '');
+      badge.textContent = reply ? '要返信' : t.ai.answered ? '回答済み' : '返答不要';
+      aiLine.append(badge, document.createTextNode(t.ai.reason || ''));
+      node.classList.toggle('is-reply', reply);
+    }
+
     const status = node.querySelector('.status');
     const manual = state.manual[t.id];
     if (!done) {
@@ -322,14 +341,28 @@
     const base = sortTasks(visibleTasks());
     const open = base.filter(t => !isDone(t));
     const done = base.filter(t => isDone(t));
+    const hasAi = d.tasks.some(t => t.ai);
+    const reply = base.filter(isReply).sort((a, b) => (a.time - b.time) * (state.view.order === 'desc' ? -1 : 1));
     el.statOpen.textContent = open.length;
     el.statDone.textContent = done.length;
+    el.statReply.textContent = hasAi ? reply.length : '—';
+    el.judgedNote.textContent = d.judgedAt
+      ? 'Claudeの判定：' + fmtTime(d.judgedAt) + ' 時点'
+      : (hasAi ? '' : 'Claudeの判定はまだありません');
     const oldest = open.slice().sort((a, b) => a.time - b.time)[0];
     el.statOldest.textContent = oldest ? ago(oldest.time) + '・' + shortName(oldest.fromName) + '（' + oldest.roomName + '）' : 'なし 🎉';
-    document.title = (open.length ? '(' + open.length + ') ' : '') + 'Toタスク';
+    const badgeCount = hasAi ? reply.length : open.length;
+    document.title = (badgeCount ? '(' + badgeCount + ') ' : '') + 'Toタスク';
 
     const frag = document.createDocumentFragment();
     const st = state.view.status;
+    if (st === 'reply') {
+      if (!hasAi) frag.append(emptyBox('Claudeの判定がまだありません', '定期実行で判定されると、ここに返事が必要なToだけが並びます'));
+      else if (reply.length) appendGroup(frag, reply);
+      else frag.append(emptyBox('返事が必要なToはありません', '質問や依頼にはすべて答えています'));
+      el.list.replaceChildren(frag);
+      return;
+    }
     if (st !== 'done') {
       if (st === 'all') frag.append(sectionTitle('未対応', open.length, 'section-title--open'));
       if (open.length) appendGroup(frag, open);

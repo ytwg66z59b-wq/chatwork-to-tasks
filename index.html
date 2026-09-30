@@ -34,6 +34,10 @@
 
   <main class="page">
     <section class="summary" id="summary" hidden>
+      <div class="stat stat--reply" id="statReplyBox">
+        <span class="stat__num" id="statReply">0</span>
+        <span class="stat__label">要返信</span>
+      </div>
       <div class="stat stat--alert">
         <span class="stat__num" id="statOpen">0</span>
         <span class="stat__label">未対応</span>
@@ -50,6 +54,7 @@
 
     <section class="filters" id="filters" hidden aria-label="絞り込み">
       <div class="seg" role="radiogroup" aria-label="状態">
+        <button type="button" class="seg__btn" data-status="reply" role="radio">要返信</button>
         <button type="button" class="seg__btn" data-status="open" role="radio">未対応</button>
         <button type="button" class="seg__btn" data-status="done" role="radio">対応済み</button>
         <button type="button" class="seg__btn" data-status="all" role="radio">すべて</button>
@@ -75,10 +80,13 @@
           <input id="searchInput" type="search" placeholder="本文・送信者で検索" autocomplete="off">
         </label>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="groupToggle">
-        <span>トークルームごとにまとめる</span>
-      </label>
+      <div class="filters__foot">
+        <label class="toggle">
+          <input type="checkbox" id="groupToggle">
+          <span>トークルームごとにまとめる</span>
+        </label>
+        <span class="judged" id="judgedNote"></span>
+      </div>
     </section>
 
     <div id="notice" class="notice" hidden></div>
@@ -123,6 +131,7 @@
         <time class="card__time"></time>
       </div>
       <p class="card__from"></p>
+      <p class="card__ai" hidden></p>
       <div class="card__body"></div>
       <button type="button" class="card__more" hidden>もっと見る</button>
       <div class="card__foot">

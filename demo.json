@@ -7,6 +7,7 @@
  },
  "baseNow": 1790823600000,
  "generatedAt": 1790823600000,
+ "judgedAt": 1790822400000,
  "rooms": [
   {
    "id": "9001",
@@ -56,7 +57,12 @@
    "done": false,
    "doneAt": null,
    "doneBy": null,
-   "replyUrl": null
+   "replyUrl": null,
+   "ai": {
+    "needsReply": true,
+    "answered": false,
+    "reason": "フォーム回答の依頼・未回答"
+   }
   },
   {
    "id": "9002-5001-100",
@@ -74,7 +80,12 @@
    "done": false,
    "doneAt": null,
    "doneBy": null,
-   "replyUrl": null
+   "replyUrl": null,
+   "ai": {
+    "needsReply": true,
+    "answered": false,
+    "reason": "方向性の判断を質問・未回答"
+   }
   },
   {
    "id": "9003-5002-100",
@@ -92,7 +103,12 @@
    "done": false,
    "doneAt": null,
    "doneBy": null,
-   "replyUrl": null
+   "replyUrl": null,
+   "ai": {
+    "needsReply": true,
+    "answered": false,
+    "reason": "再試行の依頼・結果未報告"
+   }
   },
   {
    "id": "9001-5003-100",
@@ -110,7 +126,12 @@
    "done": false,
    "doneAt": null,
    "doneBy": null,
-   "replyUrl": null
+   "replyUrl": null,
+   "ai": {
+    "needsReply": true,
+    "answered": false,
+    "reason": "参加可否の確認・未回答"
+   }
   },
   {
    "id": "9002-5004-100",
@@ -128,7 +149,12 @@
    "done": true,
    "doneAt": 1790488800000,
    "doneBy": "re",
-   "replyUrl": "https://www.chatwork.com/"
+   "replyUrl": "https://www.chatwork.com/",
+   "ai": {
+    "needsReply": true,
+    "answered": true,
+    "reason": "文言チェック依頼→対応済"
+   }
   },
   {
    "id": "9004-5005-100",
@@ -146,7 +172,12 @@
    "done": true,
    "doneAt": 1790391600000,
    "doneBy": "to",
-   "replyUrl": "https://www.chatwork.com/"
+   "replyUrl": "https://www.chatwork.com/",
+   "ai": {
+    "needsReply": true,
+    "answered": true,
+    "reason": "電子署名の依頼→完了報告済"
+   }
   },
   {
    "id": "9002-5006-201",
@@ -164,7 +195,12 @@
    "done": false,
    "doneAt": null,
    "doneBy": null,
-   "replyUrl": null
+   "replyUrl": null,
+   "ai": {
+    "needsReply": true,
+    "answered": false,
+    "reason": "差し替えの依頼・未回答"
+   }
   },
   {
    "id": "9001-5007-202",
@@ -182,7 +218,12 @@
    "done": false,
    "doneAt": null,
    "doneBy": null,
-   "replyUrl": null
+   "replyUrl": null,
+   "ai": {
+    "needsReply": true,
+    "answered": false,
+    "reason": "原因の質問・未回答"
+   }
   },
   {
    "id": "9003-5008-202",
@@ -200,7 +241,35 @@
    "done": true,
    "doneAt": 1790568000000,
    "doneBy": "re",
-   "replyUrl": "https://www.chatwork.com/"
+   "replyUrl": "https://www.chatwork.com/",
+   "ai": {
+    "needsReply": true,
+    "answered": true,
+    "reason": "確認依頼→回答済"
+   }
+  },
+  {
+   "id": "9001-5009-100",
+   "roomId": "9001",
+   "roomName": "【全体】サンプルプロジェクト",
+   "messageId": "5009",
+   "time": 1790640000000,
+   "fromId": "203",
+   "fromName": "高橋 あや",
+   "toId": "100",
+   "toName": "山田 はると",
+   "isMe": true,
+   "body": "来月の資料を共有します。\nお時間あるときに目を通しておいてください。",
+   "url": "https://www.chatwork.com/",
+   "done": false,
+   "doneAt": null,
+   "doneBy": null,
+   "replyUrl": null,
+   "ai": {
+    "needsReply": false,
+    "answered": false,
+    "reason": "資料の共有のみ"
+   }
   }
  ]
 }

@@ -17,6 +17,7 @@ const TARGET_ROOM_IDS = [];   // 空なら参加中の全ルーム。絞るな�
 const INTERVAL_MINUTES = 5;   // 1, 5, 10, 15, 30 のいずれか
 const TIMEZONE = 'Asia/Tokyo';
 const API_DEFAULT_DAYS = 60;  // APIが返す期間（日）
+const JUDGE_FOLDER_NAME = 'Toタスク判定'; // Claudeの「要返信」判定を置くドライブのフォルダ
 // ================
 
 const API_BASE = 'https://api.chatwork.com/v2';
@@ -194,6 +195,15 @@ function doGet(e) {
         senderId: String(v[7] || '')
       }));
     const result = buildTasks(rows, { me: getMe_(), sinceMs: Date.now() - days * 86400000 });
+    // Claudeの「要返信」判定（Googleドライブの Toタスク判定 フォルダ）を付ける
+    const judged = loadJudgments_();
+    if (judged) {
+      result.judgedAt = judged.updatedAt;
+      result.tasks.forEach(t => {
+        const a = judged.j[t.id];
+        if (a) t.ai = { needsReply: !!a[0], answered: !!a[1], reason: a[2] || '' };
+      });
+    }
     result.ok = true;
     const text = JSON.stringify(result);
     if (text.length < 95000) cache.put(cacheKey, text, 60);
@@ -201,6 +211,34 @@ function doGet(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
   }
+}
+
+/** Toタスク判定フォルダの一番新しい to-judgments-*.json を読む（なければ null） */
+function loadJudgments_() {
+  try {
+    const folders = DriveApp.getFoldersByName(JUDGE_FOLDER_NAME);
+    if (!folders.hasNext()) return null;
+    const files = folders.next().getFiles();
+    let latest = null;
+    while (files.hasNext()) {
+      const f = files.next();
+      if (f.isTrashed() || !/^to-judgments-.*\.json$/.test(f.getName())) continue;
+      if (!latest || f.getName() > latest.getName()) latest = f;
+    }
+    if (!latest) return null;
+    const data = JSON.parse(latest.getBlob().getDataAsString('UTF-8'));
+    if (data.v === 2) return { updatedAt: data.u, j: data.j };
+    return null;
+  } catch (err) {
+    console.warn('判定ファイルを読めませんでした: ' + err);
+    return null;
+  }
+}
+
+/** 権限の承認用：一度だけ実行して、判定ファイルが読めるか確認する */
+function testJudgments() {
+  const r = loadJudgments_();
+  console.log(r ? ('判定 ' + Object.keys(r.j).length + ' 件（更新 ' + new Date(r.updatedAt) + '）') : '判定ファイルが見つかりません');
 }
 
 function json_(obj) {

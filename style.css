@@ -10,6 +10,8 @@
   --accent-text: #b4232a;
   --ok: #1f8a4c;
   --ok-soft: #e6f5ec;
+  --warn: #c2410c;
+  --warn-soft: #fdeee4;
   --me: #2f6fdd;
   --me-soft: #e8f0fd;
   --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
@@ -29,6 +31,8 @@
     --accent-text: #ff9da1;
     --ok: #4cc38a;
     --ok-soft: #1b3326;
+    --warn: #ff9a5c;
+    --warn-soft: #3a2518;
     --me: #7aa7ff;
     --me-soft: #1f2a40;
     --shadow: 0 1px 2px rgba(0, 0, 0, .4);
@@ -38,7 +42,7 @@
 :root[data-theme="dark"] {
   --bg: #15171b; --surface: #1d2025; --surface-2: #262a31; --border: #30353d;
   --text: #eceef1; --muted: #9aa1ac; --accent: #ff6369; --accent-soft: #3a2022;
-  --accent-text: #ff9da1; --ok: #4cc38a; --ok-soft: #1b3326; --me: #7aa7ff;
+  --accent-text: #ff9da1; --ok: #4cc38a; --ok-soft: #1b3326; --warn: #ff9a5c; --warn-soft: #3a2518; --me: #7aa7ff;
   --me-soft: #1f2a40; --shadow: 0 1px 2px rgba(0, 0, 0, .4); color-scheme: dark;
 }
 
@@ -89,7 +93,8 @@ button, input, select { font: inherit; color: inherit; }
 /* ---------- layout ---------- */
 .page { max-width: 880px; margin: 0 auto; padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); }
 
-.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 2fr); gap: 10px; margin-bottom: 14px; }
+.summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 2fr); gap: 10px; margin-bottom: 14px; }
+.stat--reply .stat__num { color: var(--warn); }
 .stat {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 10px 14px; display: flex; flex-direction: column; justify-content: center; min-width: 0;
@@ -103,7 +108,7 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 12px; margin-bottom: 16px; display: grid; gap: 12px;
 }
-.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface-2); padding: 3px; border-radius: 11px; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface-2); padding: 3px; border-radius: 11px; }
 .seg__btn { border: 0; background: transparent; border-radius: 9px; padding: 7px 4px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
 .seg__btn[aria-checked="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .filter-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -115,6 +120,18 @@ button, input, select { font: inherit; color: inherit; }
   border: 1px solid var(--border); background: var(--surface);
 }
 .field select:focus, .field input:focus { outline: 2px solid var(--me); outline-offset: 1px; }
+.filters__foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+.judged { font-size: 12px; color: var(--muted); }
+.card__ai {
+  margin: 4px 0 6px; font-size: 13px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; color: var(--muted);
+}
+.ai-badge {
+  flex: none; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 1px 7px; letter-spacing: .02em;
+  background: var(--surface-2); color: var(--muted);
+}
+.ai-badge--reply { background: var(--warn-soft); color: var(--warn); }
+.ai-badge--answered { background: var(--ok-soft); color: var(--ok); }
+.card.is-reply::before { background: var(--warn); }
 .toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; justify-self: start; }
 .toggle input { width: 18px; height: 18px; accent-color: var(--me); }
 
@@ -195,7 +212,9 @@ button, input, select { font: inherit; color: inherit; }
 
 @media (max-width: 640px) {
   .page { padding-top: 12px; }
-  .summary { grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; margin-bottom: 10px; }
+  .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+  .stat--wide { grid-column: 1 / -1; }
+  .seg__btn { font-size: 13px; }
   .stat { padding: 8px 12px; }
   .stat__num { font-size: 22px; }
   .stat__label { font-size: 11px; }
