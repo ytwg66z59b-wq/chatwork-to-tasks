@@ -150,9 +150,9 @@
     return !!t.done;
   }
 
-  // Claudeが「返答が必要・まだ答えていない」と判定したもの（手動で完了にしたものは除く）
+  // Claudeが「返答が必要・まだ答えていない」と判定したもの（対応済み＝RE/To返信・手動完了のものは除く）
   function isReply(t) {
-    if (state.manual[t.id] === 'done') return false;
+    if (isDone(t)) return false;
     return !!(t.ai && t.ai.needsReply && !t.ai.answered);
   }
 
