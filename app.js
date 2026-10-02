@@ -150,10 +150,22 @@
     return !!t.done;
   }
 
-  // Claudeが「返答が必要・まだ答えていない」と判定したもの（対応済み＝RE/To返信・手動完了のものは除く）
-  function isReply(t) {
-    if (isDone(t)) return false;
+  // Claudeが「返答が必要」と判定し、まだ答えていないもの
+  function aiOpen(t) {
+    if (state.manual[t.id] === 'done') return false;               // 手動で完了にしたものは除く
     return !!(t.ai && t.ai.needsReply && !t.ai.answered);
+  }
+  // たぶん対応済み：Claudeが「たぶん済み」と見たもの、またはRE/Toで返信はあるが中身は未回答と判定されたもの
+  // 判定ファイルでは理由の頭に「たぶん済：」を付けて渡す（Apps Scriptを更新しなくても動くように）
+  const MAYBE_RE = /^たぶん済[:：]\s*/;
+  const aiMaybe = t => !!(t.ai && (t.ai.maybe || MAYBE_RE.test(t.ai.reason || '')));
+  const aiReason = t => String((t.ai && t.ai.reason) || '').replace(MAYBE_RE, '');
+  function isMaybe(t) {
+    return aiOpen(t) && (aiMaybe(t) || !!t.done);
+  }
+  // 要返信：返答が必要で、まだ答えておらず、たぶん済みでもないもの
+  function isReply(t) {
+    return aiOpen(t) && !isMaybe(t);
   }
 
   function saveView() { store.setJSON(LS.view, state.view); }
@@ -248,10 +260,10 @@
     if (t.ai) {
       aiLine.hidden = false;
       const badge = document.createElement('span');
-      const reply = isReply(t);
-      badge.className = 'ai-badge' + (reply ? ' ai-badge--reply' : t.ai.answered ? ' ai-badge--answered' : '');
-      badge.textContent = reply ? '要返信' : t.ai.answered ? '回答済み' : '返答不要';
-      aiLine.append(badge, document.createTextNode(t.ai.reason || ''));
+      const reply = isReply(t), maybe = isMaybe(t);
+      badge.className = 'ai-badge' + (reply ? ' ai-badge--reply' : maybe ? ' ai-badge--maybe' : t.ai.answered ? ' ai-badge--answered' : '');
+      badge.textContent = reply ? '要返信' : maybe ? 'たぶん済み' : t.ai.answered ? '回答済み' : '返答不要';
+      aiLine.append(badge, document.createTextNode(aiReason(t)));
       node.classList.toggle('is-reply', reply);
     }
 
@@ -349,7 +361,9 @@
     const open = base.filter(t => !isDone(t));
     const done = base.filter(t => isDone(t));
     const hasAi = d.tasks.some(t => t.ai);
-    const reply = base.filter(isReply).sort((a, b) => (a.time - b.time) * (state.view.order === 'desc' ? -1 : 1));
+    const byTime = (a, b) => (a.time - b.time) * (state.view.order === 'desc' ? -1 : 1);
+    const reply = base.filter(isReply).sort(byTime);
+    const maybe = base.filter(isMaybe).sort(byTime);
     el.statOpen.textContent = open.length;
     el.statDone.textContent = done.length;
     el.statReply.textContent = hasAi ? reply.length : '—';
@@ -367,6 +381,13 @@
       if (!hasAi) frag.append(emptyBox('Claudeの判定がまだありません', '定期実行で判定されると、ここに返事が必要なToだけが並びます'));
       else if (reply.length) appendGroup(frag, reply);
       else frag.append(emptyBox('返事が必要なToはありません', '質問や依頼にはすべて答えています'));
+      el.list.replaceChildren(frag);
+      return;
+    }
+    if (st === 'maybe') {
+      if (!hasAi) frag.append(emptyBox('Claudeの判定がまだありません', ''));
+      else if (maybe.length) appendGroup(frag, maybe);
+      else frag.append(emptyBox('たぶん対応済みのToはありません', '要返信のうち、済んでいそうなものがここに入ります'));
       el.list.replaceChildren(frag);
       return;
     }

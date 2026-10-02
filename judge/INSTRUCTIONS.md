@@ -25,8 +25,10 @@ Toタスクの画面（Apps Script経由）がこの結果を読んで「要返�
    `candidates=0` なら**ここで終了**（何もアップロードしない）。
 4. **判定**：`candidates.json` を全件読み、下の基準で1件ずつ判定して `$WORK/decisions.json` に書く。
    ```json
-   [{ "key": "…candidates の key をそのまま…", "needsReply": true, "answered": false, "reason": "締切確認の質問に未回答" }]
+   [{ "key": "…candidates の key をそのまま…", "needsReply": true, "answered": false, "reason": "締切確認の質問に未回答" },
+    { "key": "…", "needsReply": true, "answered": false, "maybeDone": true, "reason": "翌日の通知で置き換え" }]
    ```
+   - `maybeDone` は「たぶん対応済み」のときだけ付ける（下の基準）。画面では「要返信」ではなく「たぶん済み」タブに出る
    - 候補は全件判定する（抜けがあると merge が警告を出すので、その分を追加する）
 5. **統合**：`node judge/merge.js $WORK/prev.json $WORK/candidates.json $WORK/decisions.json $WORK/out.json`
 6. **保存**：`create_file` で `out.json` の中身を
@@ -36,7 +38,7 @@ Toタスクの画面（Apps Script経由）がこの結果を読んで「要返�
    でアップロード。`textContent` には `out.json` の中身を**一字一句そのまま**入れる（`cat` で表示して写す）。
    アップロード結果の `fileSize` が `wc -c out.json` と一致することを確認し、違ったら今アップロードしたファイルをゴミ箱に入れて1回だけやり直す。
    一致したら、手順2で取得した**前回のファイルだけ** `trash_file` でゴミ箱へ。
-7. 最後に「候補N件・要返信M件」を一行で報告する。本文の引用はしない。
+7. 最後に「候補N件・要返信M件・たぶん済みK件」を一行で報告する。本文の引用はしない。
 
 ## 判定の基準
 `to` の人の立場で、Toのメッセージ（`body`）を読む。
@@ -61,5 +63,13 @@ Toタスクの画面（Apps Script経由）がこの結果を読んで「要返�
 - 複数人に同じ依頼・質問をしていて、`othersRepliesToThis`（他の宛先の人のRE）で**すでに誰かが対応・回答済み**なら answered = true（reason 例：「他の人が対応済」）。
 - 毎日届く自動通知（「未対応の応募者がいます」など）は、依頼として needsReply = true。本人の発言でその対応が済んだと読み取れなければ answered = false。
 - `ruleDone` はルールでの自動判定（参考程度）。中身で判断する。
+- `previous` は前回の判定理由（再判定のときだけ入る）。
+
+**maybeDone（needsReply = true かつ answered = false のときだけ判断）**
+はっきり答えた・済んだとは言えないが、済んでいそうなもの。消すのではなく「たぶん済み」に分けるだけなので、迷ったら付けてよい。
+- `laterSameSenderTos` に同じ種類の新しい通知（「未対応の応募者がいます」「合否未送信アラート」など）があり、古い方の依頼が新しい方に引き継がれている（reason 例：「翌日の通知で置き換え」）
+- `othersRepliesToThis` で他の宛先の人が答えているが、自分の分まで済んだかははっきりしない（reason 例：「他の人が一部回答」）
+- 本人がREで「確認します」「対応します」と返していて、その後の結果報告はないが、作業はチャット外（スプレッドシート等）で済んでいそう（reason 例：「対応予定の返信あり」）
+- 付けないもの：本人宛ての個別の質問・判断・承認が残っているのに、誰も答えていないもの（これは要返信のまま）
 
 **reason**：画面に出す短い理由。25文字以内の日本語。例：「日程の可否を質問・未回答」「共有のみ（返答不要）」「修正依頼に完了報告済み」

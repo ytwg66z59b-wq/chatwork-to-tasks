@@ -8,7 +8,8 @@
  *
  * 対象になるのは、
  *   - まだ判定していないTo
- *   - 前回「返答が必要・未回答」と判定し、その後に宛先の人がそのルームで発言したTo
+ *   - 前回「返答が必要・未回答（たぶん済みを含む）」と判定し、その後に
+ *     宛先の人の発言／他の人のRE／同じ送信者から同じ宛先への新しいTo のどれかがあったもの
  */
 const fs = require('fs');
 const path = require('path');
@@ -42,10 +43,19 @@ for (const t of result.tasks) {
   const byRecipient = later.filter(r => isBy(r, t));
   const lastRecipientMsg = byRecipient.length ? byRecipient[byRecipient.length - 1].time : 0;
 
+  // 同じToに宛先以外の人がREで返したもの
+  const othersAll = later.filter(r => !isBy(r, t) && r.body.includes('to=' + t.roomId + '-' + t.messageId));
+  // 同じ送信者から同じ宛先への、その後のTo（毎日の自動通知が新しく来た、など）
+  const laterTos = result.tasks.filter(u => u.roomId === t.roomId && u.toId === t.toId && u.time > t.time &&
+    (u.fromId ? u.fromId === t.fromId : baseName(u.fromName) === baseName(t.fromName)));
+  const lastSignal = Math.max(lastRecipientMsg,
+    othersAll.length ? othersAll[othersAll.length - 1].time : 0,
+    laterTos.length ? laterTos[laterTos.length - 1].time : 0);
+
   const j = judgments[t.id];
   if (j) {
-    if (!j.needsReply || j.answered) continue;                 // 返答不要 or 回答済み → もう見ない
-    if (lastRecipientMsg <= (j.lastRecipientMsg || 0)) continue; // 本人の新しい発言がない → 変わらない
+    if (!j.needsReply || j.answered) continue;          // 返答不要 or 回答済み → もう見ない
+    if (lastSignal <= (j.lastSignal || 0)) continue;    // 新しい動きがない → 変わらない
   }
 
   // 判断材料：Toの後に宛先の人が同じルームで送ったメッセージ（最大8件・14日以内）
@@ -59,8 +69,7 @@ for (const t of result.tasks) {
     }));
 
   // 同じToに宛先以外の人がREで返したもの（他の宛先の人が対応済みかの判断用）
-  const others = later
-    .filter(r => !isBy(r, t) && r.body.includes('to=' + t.roomId + '-' + t.messageId))
+  const others = othersAll
     .slice(0, 3)
     .map(r => ({ time: new Date(r.time).toISOString(), from: r.sender, body: cleanBody(r.body).slice(0, 200) }));
 
@@ -74,7 +83,12 @@ for (const t of result.tasks) {
     ruleDone: t.done ? t.doneBy : null,
     recipientMessagesAfter: replies,
     othersRepliesToThis: others,
-    lastRecipientMsg: lastRecipientMsg
+    // 同じ送信者から同じ宛先への、その後のTo（すぐ次のもの＋新しいもの3件）
+    laterSameSenderTos: laterTos.filter((u, i) => i === 0 || i >= laterTos.length - 3)
+      .map(u => ({ time: new Date(u.time).toISOString(), body: u.body.slice(0, 500) })),
+    previous: j ? j.reason : null,
+    lastRecipientMsg: lastRecipientMsg,
+    lastSignal: lastSignal
   });
 }
 

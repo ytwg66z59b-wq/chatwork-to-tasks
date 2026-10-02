@@ -228,7 +228,7 @@ function doGet(e) {
       result.judgedAt = judged.updatedAt;
       result.tasks.forEach(t => {
         const a = judged.j[t.id];
-        if (a) t.ai = { needsReply: !!a[0], answered: !!a[1], reason: a[2] || '' };
+        if (a) t.ai = { needsReply: !!a[0], answered: !!a[1], reason: a[2] || '', maybe: !!a[4] };
       });
     }
     result.ok = true;

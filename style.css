@@ -108,7 +108,7 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 12px; margin-bottom: 16px; display: grid; gap: 12px;
 }
-.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface-2); padding: 3px; border-radius: 11px; }
+.seg { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface-2); padding: 3px; border-radius: 11px; }
 .seg__btn { border: 0; background: transparent; border-radius: 9px; padding: 7px 4px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
 .seg__btn[aria-checked="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .filter-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -131,6 +131,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 .ai-badge--reply { background: var(--warn-soft); color: var(--warn); }
 .ai-badge--answered { background: var(--ok-soft); color: var(--ok); }
+.ai-badge--maybe { background: var(--me-soft); color: var(--me); }
 .card.is-reply::before { background: var(--warn); }
 .toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; justify-self: start; }
 .toggle input { width: 18px; height: 18px; accent-color: var(--me); }
@@ -214,7 +215,7 @@ button, input, select { font: inherit; color: inherit; }
   .page { padding-top: 12px; }
   .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
   .stat--wide { grid-column: 1 / -1; }
-  .seg__btn { font-size: 13px; }
+  .seg__btn { font-size: 12px; padding: 7px 2px; }
   .stat { padding: 8px 12px; }
   .stat__num { font-size: 22px; }
   .stat__label { font-size: 11px; }
