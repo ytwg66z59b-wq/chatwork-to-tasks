@@ -34,10 +34,6 @@
 
   <main class="page">
     <section class="summary" id="summary" hidden>
-      <div class="stat stat--reply" id="statReplyBox">
-        <span class="stat__num" id="statReply">0</span>
-        <span class="stat__label">要返信</span>
-      </div>
       <div class="stat stat--alert">
         <span class="stat__num" id="statOpen">0</span>
         <span class="stat__label">未対応</span>
@@ -45,6 +41,10 @@
       <div class="stat">
         <span class="stat__num" id="statDone">0</span>
         <span class="stat__label">対応済み</span>
+      </div>
+      <div class="stat stat--notice">
+        <span class="stat__num" id="statNotice">0</span>
+        <span class="stat__label">通知用</span>
       </div>
       <div class="stat stat--wide">
         <span class="stat__label">いちばん古い未対応</span>
@@ -54,10 +54,9 @@
 
     <section class="filters" id="filters" hidden aria-label="絞り込み">
       <div class="seg" role="radiogroup" aria-label="状態">
-        <button type="button" class="seg__btn" data-status="reply" role="radio">要返信</button>
-        <button type="button" class="seg__btn" data-status="maybe" role="radio">たぶん済み</button>
         <button type="button" class="seg__btn" data-status="open" role="radio">未対応</button>
         <button type="button" class="seg__btn" data-status="done" role="radio">対応済み</button>
+        <button type="button" class="seg__btn" data-status="notice" role="radio">通知用</button>
         <button type="button" class="seg__btn" data-status="all" role="radio">すべて</button>
       </div>
       <div class="filter-grid">
@@ -86,7 +85,6 @@
           <input type="checkbox" id="groupToggle">
           <span>トークルームごとにまとめる</span>
         </label>
-        <span class="judged" id="judgedNote"></span>
       </div>
     </section>
 

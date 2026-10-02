@@ -28,9 +28,10 @@
     loading: false,
     error: null,
     manual: store.getJSON(LS.manual, {}),   // id -> 'done' | 'open'（手動の上書き）
-    view: Object.assign({ status: 'reply', person: 'me', room: 'all', order: 'asc', q: '', group: false }, store.getJSON(LS.view, {})),
+    view: Object.assign({ status: 'open', person: 'me', room: 'all', order: 'asc', q: '', group: false }, store.getJSON(LS.view, {})),
     expanded: new Set()
   };
+  if (!['notice', 'open', 'done', 'all'].includes(state.view.status)) state.view.status = 'open'; // 旧タブ（要返信など）からの移行
 
   // URLの #api=...&key=... から設定を取り込む（スマホへの設定の受け渡し用）
   (function importFromHash() {
@@ -47,7 +48,7 @@
   const el = {
     list: $('#list'), notice: $('#notice'), summary: $('#summary'), filters: $('#filters'),
     statOpen: $('#statOpen'), statDone: $('#statDone'), statOldest: $('#statOldest'),
-    statReply: $('#statReply'), statReplyBox: $('#statReplyBox'), judgedNote: $('#judgedNote'),
+    statNotice: $('#statNotice'),
     personSel: $('#personSel'), roomSel: $('#roomSel'), orderSel: $('#orderSel'), search: $('#searchInput'),
     group: $('#groupToggle'), updated: $('#updated'), subtitle: $('#subtitle'),
     refresh: $('#refreshBtn'), settingsBtn: $('#settingsBtn'), dialog: $('#settings'), form: $('#settingsForm'),
@@ -143,30 +144,34 @@
   }
   const shortName = n => String(n || '').replace(/[（(【].*$/, '').split(/[｜|]/)[0].trim() || n;
 
+  // ---------- 振り分け（AIは使わず、チャットの文面だけで判断） ----------
+  // 通知用：①送信者名に「通知用」が入っている ②自分が「CC」として書かれている ③本文に「返信不要」などとある
+  const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function noticeReason(t) {
+    if (t._notice !== undefined) return t._notice;
+    let why = '';
+    if (/通知用/.test(t.fromName || '')) why = '通知用アカウントからの通知';
+    else {
+      const name = shortName(t.toName).split(/[/／]/)[0].replace(/\s+/g, '');
+      const nameRe = name.split('').map(escRe).join('[\\s　]*');
+      if (name && new RegExp('(?:^|[^A-Za-z])(?:cc|CC|Cc|ｃｃ|ＣＣ|Ｃｃ)[\\s　:：]*' + nameRe).test(t.body || '')) why = 'CCで入っているだけ';
+      else if (/返信不要|返信は不要|返信には(?:及|およ)びません|返信なしで/.test(t.body || '')) why = '「返信不要」と書かれている';
+    }
+    t._notice = why;
+    return why;
+  }
+  // 手動で動かしたもの（完了にした・未対応に移した など）は通知用に入れない
+  const isNotice = t => !state.manual[t.id] && !!noticeReason(t);
+
+  // 対応済み：宛先の人が、そのToにREで返した／同じルームで送り主にToを返した（または手動で完了にした）
   function isDone(t) {
     const o = state.manual[t.id];
     if (o === 'done') return true;
     if (o === 'open') return false;
     return !!t.done;
   }
-
-  // Claudeが「返答が必要」と判定し、まだ答えていないもの
-  function aiOpen(t) {
-    if (state.manual[t.id] === 'done') return false;               // 手動で完了にしたものは除く
-    return !!(t.ai && t.ai.needsReply && !t.ai.answered);
-  }
-  // たぶん対応済み：Claudeが「たぶん済み」と見たもの、またはRE/Toで返信はあるが中身は未回答と判定されたもの
-  // 判定ファイルでは理由の頭に「たぶん済：」を付けて渡す（Apps Scriptを更新しなくても動くように）
-  const MAYBE_RE = /^たぶん済[:：]\s*/;
-  const aiMaybe = t => !!(t.ai && (t.ai.maybe || MAYBE_RE.test(t.ai.reason || '')));
-  const aiReason = t => String((t.ai && t.ai.reason) || '').replace(MAYBE_RE, '');
-  function isMaybe(t) {
-    return aiOpen(t) && (aiMaybe(t) || !!t.done);
-  }
-  // 要返信：返答が必要で、まだ答えておらず、たぶん済みでもないもの
-  function isReply(t) {
-    return aiOpen(t) && !isMaybe(t);
-  }
+  const isOpen = t => !isNotice(t) && !isDone(t);
+  const isDoneTask = t => !isNotice(t) && isDone(t);
 
   function saveView() { store.setJSON(LS.view, state.view); }
 
@@ -256,20 +261,23 @@
       });
     }
 
+    const notice = isNotice(t);
     const aiLine = node.querySelector('.card__ai');
-    if (t.ai) {
+    if (notice) {
       aiLine.hidden = false;
       const badge = document.createElement('span');
-      const reply = isReply(t), maybe = isMaybe(t);
-      badge.className = 'ai-badge' + (reply ? ' ai-badge--reply' : maybe ? ' ai-badge--maybe' : t.ai.answered ? ' ai-badge--answered' : '');
-      badge.textContent = reply ? '要返信' : maybe ? 'たぶん済み' : t.ai.answered ? '回答済み' : '返答不要';
-      aiLine.append(badge, document.createTextNode(aiReason(t)));
-      node.classList.toggle('is-reply', reply);
+      badge.className = 'ai-badge ai-badge--notice';
+      badge.textContent = '通知用';
+      aiLine.append(badge, document.createTextNode(noticeReason(t)));
     }
+    node.classList.toggle('is-notice', notice);
 
     const status = node.querySelector('.status');
     const manual = state.manual[t.id];
-    if (!done) {
+    if (notice) {
+      status.className = 'status status--notice';
+      status.textContent = done ? '通知（返信あり）' : '通知';
+    } else if (!done) {
       status.className = 'status status--open';
       status.textContent = '未対応';
     } else {
@@ -282,10 +290,11 @@
     if (t.replyUrl && done && manual !== 'done') { reply.hidden = false; reply.href = t.replyUrl; }
 
     const mbtn = node.querySelector('.card__manual');
-    mbtn.textContent = done ? '未対応に戻す' : '完了にする';
+    mbtn.textContent = notice ? '未対応に移す' : done ? '未対応に戻す' : '完了にする';
     mbtn.addEventListener('click', () => {
-      const next = !done;
-      if (next === !!t.done) delete state.manual[t.id]; else state.manual[t.id] = next ? 'done' : 'open';
+      const next = notice ? false : !done;
+      if (noticeReason(t)) state.manual[t.id] = next ? 'done' : 'open';     // 通知用だったものは手動の状態を残す
+      else if (next === !!t.done) delete state.manual[t.id]; else state.manual[t.id] = next ? 'done' : 'open';
       store.setJSON(LS.manual, state.manual);
       render();
     });
@@ -358,48 +367,33 @@
     }
 
     const base = sortTasks(visibleTasks());
-    const open = base.filter(t => !isDone(t));
-    const done = base.filter(t => isDone(t));
-    const hasAi = d.tasks.some(t => t.ai);
-    const byTime = (a, b) => (a.time - b.time) * (state.view.order === 'desc' ? -1 : 1);
-    const reply = base.filter(isReply).sort(byTime);
-    const maybe = base.filter(isMaybe).sort(byTime);
+    const open = base.filter(isOpen);
+    const done = base.filter(isDoneTask);
+    const notices = base.filter(isNotice);
     el.statOpen.textContent = open.length;
     el.statDone.textContent = done.length;
-    el.statReply.textContent = hasAi ? reply.length : '—';
-    el.judgedNote.textContent = d.judgedAt
-      ? 'Claudeの判定：' + fmtTime(d.judgedAt) + ' 時点'
-      : (hasAi ? '' : 'Claudeの判定はまだありません');
+    el.statNotice.textContent = notices.length;
     const oldest = open.slice().sort((a, b) => a.time - b.time)[0];
     el.statOldest.textContent = oldest ? ago(oldest.time) + '・' + shortName(oldest.fromName) + '（' + oldest.roomName + '）' : 'なし 🎉';
-    const badgeCount = hasAi ? reply.length : open.length;
-    document.title = (badgeCount ? '(' + badgeCount + ') ' : '') + 'Toタスク';
+    document.title = (open.length ? '(' + open.length + ') ' : '') + 'Toタスク';
 
     const frag = document.createDocumentFragment();
     const st = state.view.status;
-    if (st === 'reply') {
-      if (!hasAi) frag.append(emptyBox('Claudeの判定がまだありません', '定期実行で判定されると、ここに返事が必要なToだけが並びます'));
-      else if (reply.length) appendGroup(frag, reply);
-      else frag.append(emptyBox('返事が必要なToはありません', '質問や依頼にはすべて答えています'));
-      el.list.replaceChildren(frag);
-      return;
-    }
-    if (st === 'maybe') {
-      if (!hasAi) frag.append(emptyBox('Claudeの判定がまだありません', ''));
-      else if (maybe.length) appendGroup(frag, maybe);
-      else frag.append(emptyBox('たぶん対応済みのToはありません', '要返信のうち、済んでいそうなものがここに入ります'));
-      el.list.replaceChildren(frag);
-      return;
-    }
-    if (st !== 'done') {
-      if (st === 'all') frag.append(sectionTitle('未対応', open.length, 'section-title--open'));
+    const all = st === 'all';
+    if (st === 'open' || all) {
+      if (all) frag.append(sectionTitle('未対応', open.length, 'section-title--open'));
       if (open.length) appendGroup(frag, open);
       else frag.append(emptyBox('未対応のToはありません', 'すべて返信済みです'));
     }
-    if (st !== 'open') {
-      if (st === 'all') frag.append(sectionTitle('対応済み', done.length));
+    if (st === 'done' || all) {
+      if (all) frag.append(sectionTitle('対応済み', done.length));
       if (done.length) appendGroup(frag, done);
-      else if (st === 'done') frag.append(emptyBox('対応済みのToはまだありません', ''));
+      else if (!all) frag.append(emptyBox('対応済みのToはまだありません', ''));
+    }
+    if (st === 'notice' || all) {
+      if (all) frag.append(sectionTitle('通知用', notices.length));
+      if (notices.length) appendGroup(frag, notices);
+      else if (!all) frag.append(emptyBox('通知用のToはありません', '通知用アカウントからの通知や、CCで入っているだけのToがここに入ります'));
     }
     el.list.replaceChildren(frag);
   }
